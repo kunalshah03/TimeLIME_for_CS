@@ -54,6 +54,7 @@ relatively high cyclomatic complexity into 2 simpler methods.
 <img src="./figs/refactoring.png" width="90%"></img>
 
 <a name=examples>
+ 
 ## Step 5: Apply the corresponding method
 
 The effect
