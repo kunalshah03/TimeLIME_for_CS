@@ -3,6 +3,32 @@ import matplotlib.pyplot as plt
 
 
 def main():
+    paras = [True]
+    explainer = None
+    print("RUNNING FREQUENT ITEMSET LEARNING")
+    fnames = [['jedit-4.0.csv', 'jedit-4.1.csv', 'jedit-4.2.csv'],
+              ['camel-1.0.csv', 'camel-1.2.csv', 'camel-1.4.csv'],
+              ['camel-1.2.csv', 'camel-1.4.csv', 'camel-1.6.csv'],
+              ['log4j-1.0.csv', 'log4j-1.1.csv', 'log4j-1.2.csv'],
+              ['xalan-2.4.csv', 'xalan-2.5.csv', 'xalan-2.6.csv'],
+              ['ant-1.5.csv', 'ant-1.6.csv', 'ant-1.7.csv'],
+              #           ['lucene-2.0.csv','lucene-2.2.csv','lucene-2.4.csv'],
+              ['velocity-1.4.csv', 'velocity-1.5.csv', 'velocity-1.6.csv'],
+              ['poi-1.5.csv', 'poi-2.5.csv', 'poi-3.0.csv'],
+              ['synapse-1.0.csv', 'synapse-1.1.csv', 'synapse-1.2.csv']
+              ]
+    # scores_c,bcs_c=[],[]
+    # size_c,score_2c=[],[]
+    old, new = [], []
+    for par in paras:
+        for name in fnames:
+            o, n = historical_logs(name, 20, explainer, smote=True, small=.03, act=par)
+            old.append(o)
+            new.append(n)
+    everything = []
+    for i in range(len(new)):
+        everything.append(old[i] + new[i])
+
     # TimeLIME planner
     paras = [True]
     explainer = None
@@ -16,75 +42,107 @@ def main():
               ['poi-1.5.csv', 'poi-2.5.csv', 'poi-3.0.csv'],
               ['synapse-1.0.csv', 'synapse-1.1.csv', 'synapse-1.2.csv']
               ]
+
     scores_t, bcs_t = [], []
     size_t, score_2t = [], []
+    records2 = []
+    con_matrix1 = []
+    i = 0
     for par in paras:
         for name in fnames:
-            score, bc, size, score_2 = planner(name, 20, explainer, smote=True, small=.03, act=par)
+            df = pd.DataFrame(everything[i])
+            i += 1
+            itemsets = convert_to_itemset(df)
+            te = TransactionEncoder()
+            te_ary = te.fit(itemsets).transform(itemsets, sparse=True)
+            df = pd.DataFrame.sparse.from_spmatrix(te_ary, columns=te.columns_)
+            rules = apriori(df, min_support=0.001, max_len=5, use_colnames=True)
+            score, bc, size, score_2, rec, mat = TL(name, 20, rules, smote=True, act=par)
             scores_t.append(score)
             bcs_t.append(bc)
             size_t.append(size)
             score_2t.append(score_2)
+            records2.append(rec)
+            con_matrix1.append(mat)
 
     # Classical LIME planner
     paras = [False]
     explainer = None
     scores_f, bcs_f = [], []
     size_f, score_2f = [], []
+    cm_f = []
     for par in paras:
         for name in fnames:
-            score, bc, size, score_2 = planner(name, 20, explainer, smote=True, small=.03, act=par)
+            score, bc, size, score_2, rec, matrix = planner(name, 20, explainer, smote=True, small=.03, act=par)
             scores_f.append(score)
             bcs_f.append(bc)
             size_f.append(size)
             score_2f.append(score_2)
+            cm_f.append(matrix)
 
     # Random planner
-    scores_rw, bcs_rw = [], []
-    size_rw, score2_rw = [], []
+    scores_rw1, bcs_rw = [], []
+    size_rw1, score_2_rw1 = [], []
+    numbers = [4, 3, 5, 5, 5, 5, 4, 4, 5]
+    cm_rw1 = []
+    i = 0
     for name in fnames:
-        score, bc, size, score_2 = RW(name, 20, explainer, smote=False, small=.03, act=False)
-        scores_rw.append(score)
+        score, bc, size, score_2, matrix = RW(name, 20, explainer, smote=False, small=.03, act=False, number=numbers[i])
+        i += 1
+        scores_rw1.append(score)
         bcs_rw.append(bc)
-        size_rw.append(size)
-        score2_rw.append(score_2)
+        size_rw1.append(size)
+        score_2_rw1.append(score_2)
+        cm_rw1.append(matrix)
 
     # Alves
     scores_alve, bcs_alve, sizes_alve, scores2_alve = [], [], [], []
+    cm_alve = []
     for name in fnames:
-        score, bc, size, score2 = runalves(name, thresh=0.95)
+        matrix = []
+        score, bc, size, score2, matrix = runalves(name, thresh=0.95)
         scores_alve.append(score)
         bcs_alve.append(bc)
         sizes_alve.append(size)
         scores2_alve.append(score2)
+        cm_alve.append(matrix.copy())
 
     # Shatnawi
     scores_shat, bcs_shat, sizes_shat, scores2_shat = [], [], [], []
+    cm_shat = []
     for name in fnames:
-        score, bc, size, score2 = runshat(name, 0.5)
-        scores_shat.append(score)
+        matrix = []
+        score, bc, size, score2, matrix = runshat(name, 0.5)
+        scores_shat.append(score.copy())
         bcs_shat.append(bc)
         sizes_shat.append(size)
         scores2_shat.append(score2)
+        cm_shat.append(matrix.copy())
 
     # Oliveira
     scores_oliv, bcs_oliv, sizes_oliv, scores2_oliv = [], [], [], []
+    cm_oliv = []
     for name in fnames:
-        score, bc, size, score2 = runolive(name)
+        matrix = []
+        score, bc, size, score2, matrix = runolive(name)
         scores_oliv.append(score)
         bcs_oliv.append(bc)
         sizes_oliv.append(size)
         scores2_oliv.append(score2)
+        cm_oliv.append(matrix.copy())
 
     # XTREE
     scores_x, bcs_x, sizes_x, scores2_x = [], [], [], []
+    cm_x = []
     for par in paras:
         for name in fnames:
-            score_x, bc_x, size_x, score2 = xtree(name)
+            score_x,bc_x,size_x,score2,matrix = xtree(name)
             scores_x.append(score_x)
             bcs_x.append(bc_x)
             sizes_x.append(size_x)
             scores2_x.append(score2)
+            cm_x.append(matrix)
+            pd.DataFrame(matrix).to_csv('cm_x' + str(i) + '.csv')
 
     pd.DataFrame(score_2t).to_csv("rq1_TimeLIME.csv")
     pd.DataFrame(score_2f).to_csv("rq1_LIME.csv")
