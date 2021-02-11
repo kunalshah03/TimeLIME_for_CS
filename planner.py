@@ -39,7 +39,7 @@ def RW(name, par, explainer=None, smote=False, small=0.05, act=False, number=5):
         for i in range(1, 21):
             col1 = df1.iloc[:, i]
             col2 = df2.iloc[:, i]
-            deltas.append(hedge(col1, col2, small))
+            deltas.append(hedge(col1, col2))
     #             if not (hedge(col1,col2,small)):
     #                 freq[i-1]+=1
     deltas = sorted(range(len(deltas)), key=lambda k: deltas[k], reverse=True)

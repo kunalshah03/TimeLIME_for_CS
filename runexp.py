@@ -81,19 +81,19 @@ def main():
             cm_f.append(matrix)
 
     # Random planner
-    scores_rw1, bcs_rw = [], []
-    size_rw1, score_2_rw1 = [], []
+    scores_rw, bcs_rw = [], []
+    size_rw, score2_rw = [], []
     numbers = [4, 3, 5, 5, 5, 5, 4, 4, 5]
-    cm_rw1 = []
+    cm_rw = []
     i = 0
     for name in fnames:
         score, bc, size, score_2, matrix = RW(name, 20, explainer, smote=False, small=.03, act=False, number=numbers[i])
         i += 1
-        scores_rw1.append(score)
+        scores_rw.append(score)
         bcs_rw.append(bc)
-        size_rw1.append(size)
-        score_2_rw1.append(score_2)
-        cm_rw1.append(matrix)
+        size_rw.append(size)
+        score2_rw.append(score_2)
+        cm_rw.append(matrix)
 
     # Alves
     scores_alve, bcs_alve, sizes_alve, scores2_alve = [], [], [], []
