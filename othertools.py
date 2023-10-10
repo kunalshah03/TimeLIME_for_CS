@@ -440,15 +440,27 @@ def abcd(ori,plan,actual,act):
     tp,tn,fp,fn=0,0,0,0
     for i in range(len(ori)):
         if act[i]!=0:
-            if plan[i][0]<=actual[i]<=plan[i][1]:
-                tp+=1
+            if isinstance(plan[i], float):
+                if plan[i]==actual[i]:
+                    tp+=1
+                else:
+                    fp+=1
             else:
-                fp+=1
+                if plan[i][0]<=actual[i]<=plan[i][1]:
+                    tp+=1
+                else:
+                    fp+=1
         else:
-            if plan[i][0]<=actual[i]<=plan[i][1]:
-                tn+=1
+            if isinstance(plan[i], float):
+                if plan[i]==actual[i]:
+                    tn+=1
+                else:
+                    fn+=1
             else:
-                fn+=1
+                if plan[i][0]<=actual[i]<=plan[i][1]:
+                    tn+=1
+                else:
+                    fn+=1
     return tp,tn,fp,fn
 
 

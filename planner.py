@@ -171,7 +171,7 @@ def planner(name, par, explainer=None, smote=False, small=0.05, act=False):
         sm = SMOTE()
         X_train1_s, y_train1_s = sm.fit_resample(X_train1, y_train1)
         clf1.fit(X_train1_s, y_train1_s)
-        explainer = lime.lime_tabular.LimeTabularExplainer(training_data=X_train1_s, training_labels=y_train1_s,
+        explainer = lime.lime_tabular.LimeTabularExplainer(training_data=pd.DataFrame(X_train1_s).values, training_labels=y_train1_s,
                                                            feature_names=df11.columns,
                                                            discretizer='entropy', feature_selection='lasso_path',
                                                            mode='classification')
@@ -273,7 +273,7 @@ def TL(name,par,rules,smote=False,act=False):
         sm = SMOTE()
         X_train1_s, y_train1_s = sm.fit_resample(X_train1, y_train1)
         clf1.fit(X_train1_s, y_train1_s)
-        explainer = lime.lime_tabular.LimeTabularExplainer(training_data=X_train1_s, training_labels=y_train1_s,
+        explainer = lime.lime_tabular.LimeTabularExplainer(training_data=pd.DataFrame(X_train1_s).values, training_labels=y_train1_s,
                                                            feature_names=df11.columns,
                                                            discretizer='entropy', feature_selection='lasso_path',
                                                            mode='classification')
@@ -872,7 +872,7 @@ def historical_logs(name, par, explainer=None, smote=False, small=0.05, act=Fals
         sm = SMOTE()
         X_train1_s, y_train1_s = sm.fit_resample(X_train1, y_train1)
         clf1.fit(X_train1_s, y_train1_s)
-        explainer = lime.lime_tabular.LimeTabularExplainer(training_data=X_train1_s, training_labels=y_train1_s,
+        explainer = lime.lime_tabular.LimeTabularExplainer(training_data=pd.DataFrame(X_train1_s).values, training_labels=y_train1_s,
                                                            feature_names=df11.columns,
                                                            discretizer='entropy', feature_selection='lasso_path',
                                                            mode='classification', sample_around_instance=True)
