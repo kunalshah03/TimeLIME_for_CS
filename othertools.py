@@ -10,34 +10,49 @@ import time
 import itertools
 from mlxtend.frequent_patterns import apriori
 from mlxtend.preprocessing import TransactionEncoder## This file contains all tools needed to run planners.
+import warnings
 
+warnings.filterwarnings("ignore")
 
 def list2dataframe(lst):
     return pd.DataFrame(lst)
 
+
 def prepareData(fname):
-    # file = fname
-    file = os.path.join("Data", fname)
+    file = os.path.join("data", fname)
     df = pd.read_csv(file,sep=',')
     cols=list(df.columns)
-    cols[1:-1] = ['cbm', 'lcom3', 'rfc', 'max_cc', 'cbo', 'moa', 'avg_cc', 'noc', 'ce',
-       'npm', 'ca', 'mfa', 'lcom', 'amc', 'cam', 'dam', 'ic', 'wmc', 'loc',
-       'dit']
-    for i in range(0,df.shape[0]):
-        if df.iloc[i,-1] >0:
-            df.iloc[i,-1] = 1
-        else:
-            df.iloc[i,-1] = 0
+    # cols = ['dates','monthly_open_issues','monthly_merged_PRs','monthly_closed_PRs',
+    #               'monthly_open_PRs','monthly_contributors','monthly_issue_comments',
+    #               'monthly_PR_comments','monthly_commits','monthly_PR_mergers',
+    #               'monthly_closed_issues','monthly_stargazer','monthly_forks',
+    #               'monthly_watchers','sina_score','paul_score','monthly_features',
+    #               'monthly_buggy_commits','developer_skill']
+    cols = ['dates','monthly_merged_PRs', 'monthly_closed_PRs', 'monthly_open_PRs', 'monthly_contributors',
+       'monthly_issue_comments', 'monthly_watchers', 'monthly_PR_comments',
+       'monthly_commits', 'monthly_PR_mergers', 'monthly_closed_issues',
+       'monthly_stargazer', 'monthly_forks', 'sina_score', 'paul_score',
+       'monthly_features', 'monthly_buggy_commits', 'developer_skill',
+       'license']
     df = pd.DataFrame(df[cols])
-    return df[cols]
-
+    return df
 
 def bugs(fname):
-    # return the number of bugs in each row
-    file = os.path.join("Data", fname)
+    file = os.path.join("data", fname)
     df = pd.read_csv(file,sep=',')
-    return df.iloc[:,-1]
+    return df.iloc[:,1]
 
+def get_index(name):
+    feature = ['monthly_merged_PRs', 'monthly_closed_PRs', 'monthly_open_PRs', 'monthly_contributors',
+       'monthly_issue_comments', 'monthly_watchers', 'monthly_PR_comments',
+       'monthly_commits', 'monthly_PR_mergers', 'monthly_closed_issues',
+       'monthly_stargazer', 'monthly_forks', 'sina_score', 'paul_score',
+       'monthly_features', 'monthly_buggy_commits', 'developer_skill',
+       'license']
+    for i in range(len(feature)):
+        if name ==feature[i]:
+            return i
+    return -1
 
 def translate1(sentence,name):
     # do not aim to change the column
@@ -78,71 +93,6 @@ def translate1(sentence,name):
     return left, right
 
 
-def translate(sentence, name):
-    # not used
-    flag = 0
-    threshold = 0
-    lst = sentence.strip().split(name)
-    #     print('LST',lst)
-    if lst[0] == '':
-        del lst[0]
-    if len(lst) == 2:
-        if '<=' in lst[1]:
-            flag = 1
-            aa = lst[1].strip(' <=')
-            threshold1 = float(aa)
-        elif '<' in lst[1]:
-            flag = 1
-            aa = lst[1].strip(' <')
-            threshold1 = float(aa)
-        if '<=' in lst[0]:
-            flag = -1
-            aa = lst[0].strip(' <=')
-            threshold0 = float(aa)
-        elif '<' in lst[0]:
-            flag = -1
-            aa = lst[0].strip(' <')
-            threshold0 = float(aa)
-        if threshold0 == 0:
-            result = threshold1
-            flag = 1
-        elif (1 - threshold1) >= (threshold0 - 0):
-            result = threshold1
-            flag = 1
-        else:
-            result = threshold0
-            flag = -1
-    else:
-        if '<=' in lst[0]:
-            flag = 1
-            aa = lst[0].strip(' <=')
-            threshold = float(aa)
-        elif '<' in lst[0]:
-            flag = 1
-            aa = lst[0].strip(' <')
-            threshold = float(aa)
-        if '>=' in lst[0]:
-            flag = -1
-            aa = lst[0].strip(' >=')
-            threshold = float(aa)
-        elif '>' in lst[0]:
-            flag = -1
-            aa = lst[0].strip(' >')
-            threshold = float(aa)
-        result = threshold
-    return flag, result
-
-
-def get_index(name):
-    feature = ['cbm', 'lcom3', 'rfc', 'max_cc', 'cbo', 'moa', 'avg_cc', 'noc', 'ce',
-       'npm', 'ca', 'mfa', 'lcom', 'amc', 'cam', 'dam', 'ic', 'wmc', 'loc',
-       'dit']
-    for i in range(len(feature)):
-        if name ==feature[i]:
-            return i
-    return -1
-
-
 def flip(data_row,local_exp,ind,clf,cols,n_feature = 5,actionable = None):
     counter = 0
     rejected = 0
@@ -161,9 +111,9 @@ def flip(data_row,local_exp,ind,clf,cols,n_feature = 5,actionable = None):
             cnt.append(i)
 #         if ind[i][1]>0:
 #             cnt.append(i)
-    record =[0 for n in range(20)]
+    record =[0 for n in range(18)]
     tem = data_row.copy()
-    result =  [[ 0 for m in range(2)] for n in range(20)]
+    result =  [[ 0 for m in range(2)] for n in range(18)]
     for j in range(0,len(local_exp)):
         act = True
         index = get_index(cols[cache[j][0]])
@@ -178,26 +128,14 @@ def flip(data_row,local_exp,ind,clf,cols,n_feature = 5,actionable = None):
             else:
                 result[cache[j][0]][0],result[cache[j][0]][1] = tem[index],1
                 record[index]=1
-#             if (l+r)/2<0.5:
-#                 if r+r-l<=1:
-#                     result[cache[j][0]][0],result[cache[j][0]][1] = r,r+(r-l)
-#                 else:
-#                     result[cache[j][0]][0],result[cache[j][0]][1] = r,1
-#             else:
-#                 if l-(r-l)>=0:
-#                     result[cache[j][0]][0],result[cache[j][0]][1] = l-(r-l),l
-#                 else:
-#                     result[cache[j][0]][0],result[cache[j][0]][1] = 0,l
-#             tem[cache[j][0]] = (result[cache[j][0]][0]+result[cache[j][0]][1])/2
             counter+=1
         else:
             if act:
                 result[cache[j][0]][0],result[cache[j][0]][1] = tem[index]-0.005,tem[index]+0.005
             else:
                 result[cache[j][0]][0],result[cache[j][0]][1] = tem[index]-0.05,tem[index]+0.05
-#             tem[index]-0.05,tem[index]+0.05
-    return tem,result,record
 
+    return tem,result,record
 
 def hedge(arr1,arr2):
     # returns a value, larger means more changes
@@ -221,13 +159,11 @@ def norm (df1,df2):
     X2 = mm.transform(X2)
     df2 = df2.copy()
     df2.iloc[:,:-1] = X2
-    return df2
 
 
 def overlap(plan,actual): # Jaccard similarity function
-    cnt = 20
+    cnt = 18
     right = 0
-    # print(plan)
     for i in range(0,len(plan)):
         if isinstance(plan[i], float):
             if np.round(actual[i],4)== np.round(plan[i],4):
@@ -253,9 +189,8 @@ def similar(ins):
 
 
 def overlap1(ori,plan,actual): # Jaccard similarity function
-    cnt = 20
+    cnt = 18
     right = 0
-    # print(plan)
     for i in range(0,len(plan)):
         if isinstance(plan[i], list):
             if actual[i]>=plan[i][0] and actual[i]<=plan[i][1]:
@@ -276,80 +211,6 @@ def size_interval(plan):
     return out
 
 
-def apply3(row, cols, pk_best):
-    newRow = row
-    rec=[0]*20
-    for idx, col in enumerate(cols):
-        try:
-            thres = pk_best[col][1]
-            proba = pk_best[col][0]
-            if thres is not None:
-                if newRow[idx] > thres:
-                    rec[idx]=1
-#                     print("Yes",thres,proba)
-                    newRow[idx] = (0, thres)
-#                     if random(0, 100) < proba else \newRow[idx]
-        except:
-            pass
-    return newRow,rec
-
-
-def apply2(changes, row):
-    rec=[0]*20
-    new_row = row
-    for idx, thres in enumerate(changes):
-        if thres is not None:
-            try:
-                if new_row[idx] > thres:
-                    rec[idx]=1
-                    new_row[idx] = (0, thres)
-            except:
-                pass
-    return new_row,rec
-
-
-def apply4(changes, row):
-    rec=[0 for i in range(20)]
-    new_row = row
-    for idx, thres in enumerate(changes):
-        if thres is not None:
-            try:
-                if new_row[idx] > thres:
-                    rec[idx]=1
-                    new_row[idx] = (0, thres)
-            except:
-                pass
-
-    # delta = np.array(new_row) - np.array(row)
-    # delta_bool = [1 if a > 0 else -1 if a < 0 else 0 for a in delta]
-    return new_row,rec
-
-
-
-def cf (lst):
-    res=[]
-    for i in range(len(lst)):
-        res.append([float(each) for each in lst[i].strip('[]').split(',')])
-    return res
-
-
-def readfile(fname):
-    file = pd.read_csv(fname, sep=',')
-    file.drop(columns=file.columns[0], inplace=True)
-    result = []
-    N = file.shape[1]
-    for i in range(N):
-        temp = []
-        for k in range(file.shape[1]):
-
-            if pd.isnull(file.iloc[i, k]):
-                continue
-            else:
-                temp.append(file.iloc[i, k])
-        result.append(temp)
-    return result
-
-
 def track1(old,new):
     rec=[]
     for i in range(len(old)):
@@ -360,7 +221,6 @@ def track1(old,new):
         else:
             rec.append(1)
     return rec
-
 
 def track(old, new):
     rec = []
@@ -373,7 +233,6 @@ def track(old, new):
         else:
             rec.append(0)
     return rec
-
 
 def frequentSet(name):
     start_time = time.time()
@@ -436,7 +295,6 @@ def transform(df2,lo,col):
 
 
 def abcd(ori,plan,actual,act):
-#     print(act)
     tp,tn,fp,fn=0,0,0,0
     for i in range(len(ori)):
         if act[i]!=0:
