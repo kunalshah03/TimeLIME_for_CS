@@ -1,0 +1,12 @@
+RQ3:
+Project				        Open_Issues_Improvement(%)      Closed_PRs_Improvement(%)      Open_PRs_Improvement(%)
+3dmol_3Dmol,			    57.09                           52.30                          56.69
+abinit_abinit,			    59.59                           66.70                          nan
+alchemistry_alchemlyb,  	45.80                           34.69                          33.7
+Amber-MD_cpptraj,		    49.2                            51.70                          51.4
+Amber-MD_pytraj,		    40.0                            51.90                          44.4
+birkir_prime,			    76.5                            -37.0                          37.3
+BOINC_boinc,			    45.30                           45.20                          44.3
+bustoutsolutions_siesta,	55.40                           46.40                          49.3
+cclib_cclib,			    11.1                            33.30                          39.8
+chemfiles_chemfiles,		47.8                            34.90                          40.9

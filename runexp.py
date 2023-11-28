@@ -48,7 +48,8 @@ def main():
     records2 = []
     con_matrix1 = []
     i = 0
-
+    # print(len(everything))
+    print("-----------------")
     for par in paras:
         for name in fnames:
             df = pd.DataFrame(everything[i])
@@ -66,7 +67,12 @@ def main():
             records2.append(rec)
             con_matrix1.append(mat)
 
+    pd.DataFrame(score_2t).to_csv("rq1_TimeLIME.csv")
+    pd.DataFrame(scores_t).to_csv("rq2_TimeLIME.csv")
+    pd.DataFrame(bcs_t).to_csv("rq3_TimeLIME.csv")
+
     return
+
 
 if __name__ == "__main__":
     main()

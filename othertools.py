@@ -14,6 +14,21 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
+def readfile(fname):
+    file = pd.read_csv(fname, sep=',')
+    file.drop(columns=file.columns[0], inplace=True)
+    result = []
+    N = file.shape[0]
+    for i in range(N):
+        temp = []
+        for k in range(file.shape[1]):
+            if pd.isnull(file.iloc[i, k]):
+                continue
+            else:
+                temp.append(file.iloc[i, k])
+        result.append(temp)
+    return result
+
 def list2dataframe(lst):
     return pd.DataFrame(lst)
 
@@ -22,33 +37,27 @@ def prepareData(fname):
     file = os.path.join("data", fname)
     df = pd.read_csv(file,sep=',')
     cols=list(df.columns)
-    # cols = ['dates','monthly_open_issues','monthly_merged_PRs','monthly_closed_PRs',
-    #               'monthly_open_PRs','monthly_contributors','monthly_issue_comments',
-    #               'monthly_PR_comments','monthly_commits','monthly_PR_mergers',
-    #               'monthly_closed_issues','monthly_stargazer','monthly_forks',
-    #               'monthly_watchers','sina_score','paul_score','monthly_features',
-    #               'monthly_buggy_commits','developer_skill']
-    cols = ['dates','monthly_merged_PRs', 'monthly_closed_PRs', 'monthly_open_PRs', 'monthly_contributors',
+    cols = ['dates','monthly_merged_PRs', 'monthly_contributors',
        'monthly_issue_comments', 'monthly_watchers', 'monthly_PR_comments',
        'monthly_commits', 'monthly_PR_mergers', 'monthly_closed_issues',
        'monthly_stargazer', 'monthly_forks', 'sina_score', 'paul_score',
        'monthly_features', 'monthly_buggy_commits', 'developer_skill',
-       'license']
+       'license', 'monthly_open_issues', 'monthly_closed_PRs','monthly_open_PRs']
     df = pd.DataFrame(df[cols])
     return df
 
 def bugs(fname):
     file = os.path.join("data", fname)
     df = pd.read_csv(file,sep=',')
-    return df.iloc[:,1]
+    return df.iloc[:,4]
 
 def get_index(name):
-    feature = ['monthly_merged_PRs', 'monthly_closed_PRs', 'monthly_open_PRs', 'monthly_contributors',
+    feature = ['monthly_merged_PRs', 'monthly_contributors',
        'monthly_issue_comments', 'monthly_watchers', 'monthly_PR_comments',
        'monthly_commits', 'monthly_PR_mergers', 'monthly_closed_issues',
        'monthly_stargazer', 'monthly_forks', 'sina_score', 'paul_score',
        'monthly_features', 'monthly_buggy_commits', 'developer_skill',
-       'license']
+       'license', 'monthly_open_issues', 'monthly_closed_PRs']
     for i in range(len(feature)):
         if name ==feature[i]:
             return i
@@ -104,10 +113,10 @@ def flip(data_row,local_exp,ind,clf,cols,n_feature = 5,actionable = None):
         cache.append(ind[i])
         trans.append(local_exp[i])
         if ind[i][1]>0.01:
-            cntp.append(i)
+            cntn.append(i)
             cnt.append(i)
         elif ind[i][1]<-0.01:
-            cntn.append(i)
+            cntp.append(i)
             cnt.append(i)
 #         if ind[i][1]>0:
 #             cnt.append(i)
@@ -152,6 +161,7 @@ def hedge(arr1,arr2):
 
 def norm (df1,df2):
     # min-max scale the dataset
+    # print(df1.describe())
     X1 = df1.iloc[:,:-1].values
     mm = MinMaxScaler()
     mm.fit(X1)
@@ -159,6 +169,8 @@ def norm (df1,df2):
     X2 = mm.transform(X2)
     df2 = df2.copy()
     df2.iloc[:,:-1] = X2
+
+    return df2
 
 
 def overlap(plan,actual): # Jaccard similarity function

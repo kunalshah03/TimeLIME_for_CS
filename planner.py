@@ -5,6 +5,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.feature_selection import f_classif
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error
 # from XTREE import XTREE
 import random
 from sklearn.preprocessing import MinMaxScaler
@@ -40,6 +41,7 @@ def TL(name,par,rules,smote=False,act=False):
     bug1 = bugs(name[0])
     bug2 = bugs(name[1])
     bug3 = bugs(name[2])
+
     df11 = df1.iloc[:, 1:]
     df22 = df2.iloc[:, 1:]
     df33 = df3.iloc[:, 1:]
@@ -47,9 +49,6 @@ def TL(name,par,rules,smote=False,act=False):
     df1n = norm(df11, df11)
     df2n = norm(df22, df22)
     df3n = norm(df22, df33)
-    df1n = df11
-    df2n = df22
-    df3n = df33
 
     X_train1 = df1n.iloc[:, :-1]
     y_train1 = df1n.iloc[:, -1]
@@ -78,10 +77,13 @@ def TL(name,par,rules,smote=False,act=False):
                                                            mode='regression')
     else:
         clf1.fit(X_train1, y_train1)
+
         explainer = lime.lime_tabular.LimeTabularExplainer(training_data=X_train1.values, training_labels=y_train1,
                                                            feature_names=df11.columns,
                                                            discretizer='entropy', feature_selection='lasso_path',
                                                            mode='regression')
+
+
     for i in range(0, len(y_test1)):
         for j in range(0, len(y_test2)):
             actual = X_test2.values[j]
@@ -92,11 +94,10 @@ def TL(name,par,rules,smote=False,act=False):
                 ind = ins.local_exp[1]
                 temp = X_test1.values[i].copy()
                 if act:
-                    tem, plan, rec = flip(temp, ins.as_list(label=1), ind, clf1, df1n.columns, par,
+                    tem, plan, rec = flip(temp, ins.as_list(), ind, clf1, df1n.columns, par,
                                             actionable=actionable)
                 else:
-                    tem, plan, rec = flip(temp, ins.as_list(label=1), ind, clf1, df1n.columns, par, actionable=None)
-                plan = plan[:-1]
+                    tem, plan, rec = flip(temp, ins.as_list(), ind, clf1, df1n.columns, par, actionable=None)
                 if act:
                     if rec in seen_id:
                         supported_plan_id = seen[seen_id.index(rec)]
@@ -113,7 +114,6 @@ def TL(name,par,rules,smote=False,act=False):
                             if (k not in supported_plan_id) and ((0 - k) not in supported_plan_id):
                                 plan[k][0], plan[k][1] = tem[k] - 0.05, tem[k] + 0.05
                                 rec[k] = 0
-
                 score.append(overlap(plan, actual))
                 size.append(size_interval(plan))
                 score2.append(len([n for n in rec if n != 0]))
@@ -167,9 +167,6 @@ def historical_logs(name, par, explainer=None, smote=False, small=0.05, act=Fals
     df1n = norm(df11, df11)
     df2n = norm(df22, df22)
     df3n = norm(df22, df33)
-    df1n = df11
-    df2n = df22
-    df3n = df33
 
     X_train1 = df1n.iloc[:, :-1]
     y_train1 = df1n.iloc[:, -1]
@@ -207,9 +204,9 @@ def historical_logs(name, par, explainer=None, smote=False, small=0.05, act=Fals
                 ind = ins.local_exp[1]
                 temp = X_test1.values[i].copy()
                 if act:
-                    tem, plan, rec = flip(temp, ins.as_list(label=1), ind, clf1, df1n.columns, 0, actionable=actionable)
+                    tem, plan, rec = flip(temp, ins.as_list(), ind, clf1, df1n.columns, 0, actionable=actionable)
                 else:
-                    tem, plan, rec = flip(temp, ins.as_list(label=1), ind, clf1, df1n.columns, 0, actionable=None)
+                    tem, plan, rec = flip(temp, ins.as_list(), ind, clf1, df1n.columns, 0, actionable=None)
                 o = track1(plan[:-1], temp)
                 n = track1(plan[:-1], actual)
                 old_change.append(o)
